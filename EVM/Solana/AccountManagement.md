@@ -2,14 +2,12 @@
 
 ## Security Checklist
 
-- [ ] Properly close accounts and collect rent
-- [ ] Protect against account reinitialization
-- [ ] Validate account space calculations
-- [ ] Handle ATA creation and existence checks
-- [ ] Consider rent-exempt minimum in transfers
-- [ ] Maintain atomic operations and data consistency
-- [ ] Implement proper error handling for updates
-- [ ] Validate account state transitions
+- [ ] [Properly close accounts and collect rent](#account-closing)
+- [ ] [Protect against account reinitialization](#reinitialization-protection)
+- [ ] [Validate account space calculations](#account-space-validation)
+- [ ] [Handle ATA creation and existence checks](#associated-token-account-ata-management)
+- [ ] [Consider rent-exempt minimum in transfers](#rent-consideration)
+- [ ] [Maintain atomic operations and data consistency](#account-data-consistency)
 
 ## Detailed Security Measures
 

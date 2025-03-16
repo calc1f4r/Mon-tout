@@ -11,6 +11,7 @@
 - [ ] [Account existence check](#lamports-validation) - Lamports not checked before operations
 - [ ] [Missing permission check](#authority-checks) - Account permissions not verified
 
+
 ## Detailed Security Measures
 
 ### Signer Validation

@@ -57,6 +57,10 @@ fn validate_remaining_accounts(remaining_accounts: &[AccountInfo]) -> Result<()>
 }
 ```
 
+These are the things which are meant to be validated!! 
+- writer check 
+- If there is a token account, reciever and sender token account ownership should be validated 
+
 ### System Program Validation
 
 **Impact**: Critical  
