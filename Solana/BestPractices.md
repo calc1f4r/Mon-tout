@@ -2,13 +2,14 @@
 
 ## General Security Guidelines
 
-1. Always use checked arithmetic operations
-2. Validate all account permissions
-3. Implement proper error handling
-4. Use typed accounts when possible
-5. Validate program IDs
-6. Protect against reentrancy
-7. Implement proper access controls
+- [ ] Always use checked arithmetic operations
+- [ ] Validate all account permissions
+- [ ] Implement proper error handling
+- [ ] Use typed accounts when possible
+- [ ] Validate program IDs
+- [ ] Protect against reentrancy
+- [ ] Implement proper access controls
+- [ ] Do not use hardcoded values (see [example](https://code4rena.com/reports/2025-01-pump-science#11-hardcoded-program-ids-in-constants-create-deployment-inflexibility-and-testing-challenges))
 
 ## Code Examples
 
@@ -116,7 +117,7 @@ pub authority: Signer<'info>
 
 ## Common Pitfalls to Avoid
 
-1. Unchecked Arithmetic
+- [ ] Unchecked Arithmetic
 ```rust
 // ❌ Bad
 let balance = account.balance + amount;
@@ -126,7 +127,7 @@ let balance = account.balance.checked_add(amount)
     .ok_or(ProgramError::Overflow)?;
 ```
 
-2. Missing Signer Checks
+- [ ] Missing Signer Checks
 ```rust
 // ❌ Bad
 fn process(ctx: Context<Tx>) -> Result<()> {
@@ -143,7 +144,7 @@ fn process(ctx: Context<Tx>) -> Result<()> {
 }
 ```
 
-3. Improper Error Handling
+- [ ] Improper Error Handling
 ```rust
 // ❌ Bad
 if error_condition {
@@ -156,7 +157,7 @@ if error_condition {
 }
 ```
 
-4. Unvalidated Account Types
+- [ ] Unvalidated Account Types
 ```rust
 // ❌ Bad
 pub account: AccountInfo<'info>
@@ -167,7 +168,7 @@ pub account: Account<'info, MyAccount>
 
 ## Testing Recommendations
 
-1. Test Edge Cases
+- [ ] Test Edge Cases
 ```rust
 #[test]
 fn test_overflow() {
@@ -176,7 +177,7 @@ fn test_overflow() {
 }
 ```
 
-2. Test Access Control
+- [ ] Test Access Control
 ```rust
 #[test]
 fn test_unauthorized_access() {
@@ -185,11 +186,11 @@ fn test_unauthorized_access() {
 }
 ```
 
-3. Test State Transitions
+- [ ] Test State Transitions
 ```rust
 #[test]
 fn test_invalid_state_transition() {
     let result = transition_state(State::Uninitialized, State::Active);
     assert!(result.is_err());
 }
-``` 
+```

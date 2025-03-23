@@ -1,16 +1,27 @@
 # Program Derived Address (PDA) Security
 
+## Table of Contents
+- [Security Checklist](#security-checklist)
+- [Detailed Security Measures](#detailed-security-measures)
+  - [PDA Validation](#pda-validation)
+  - [PDA Sharing Protection](#pda-sharing-protection)
+  - [Safe Lamport Transfers](#safe-lamport-transfers)
+  - [Seed Collision Prevention](#seed-collision-prevention)
+  - [PDA Reinitialization Protection](#pda-reinitialization-protection)
+  - [Bump Seed Validation](#bump-seed-validation)
+  - [PDA Account Space Management](#pda-account-space-management)
+
 ## Security Checklist
 
-- [ ] Validate PDA derivation and bump seeds
-- [ ] Implement PDA sharing protection with unique seeds
-- [ ] Use safe lamport transfers with proper signing
-- [ ] Prevent seed collisions with unique prefixes
-- [ ] Protect against PDA reinitialization
-- [ ] Validate and store bump seeds properly
-- [ ] Calculate PDA space requirements accurately
-- [ ] Verify program ownership of PDAs
-- [ ] Handle PDA authority checks correctly
+- [ ] [Validate PDA derivation and bump seeds](#pda-validation)
+- [ ] [Implement PDA sharing protection with unique seeds](#pda-sharing-protection)
+- [ ] [Use safe lamport transfers with proper signing](#safe-lamport-transfers)
+- [ ] [Prevent seed collisions with unique prefixes](#seed-collision-prevention)
+- [ ] [Protect against PDA reinitialization](#pda-reinitialization-protection)
+- [ ] [Validate and store bump seeds properly](#bump-seed-validation)
+- [ ] [Calculate PDA space requirements accurately](#pda-account-space-management)
+- [ ] [Verify program ownership of PDAs](#pda-validation)
+- [ ] [Handle PDA authority checks correctly](#pda-sharing-protection)
 
 ## Detailed Security Measures
 
@@ -30,6 +41,8 @@ if pda != *pda_account.key {
     return Err(ProgramError::InvalidSeeds);
 }
 ```
+
+[Back to Top](#program-derived-address-pda-security)
 
 ### PDA Sharing Protection
 
@@ -51,6 +64,8 @@ pub vault: Account<'info, Vault>,
 pub authority: Signer<'info>
 ```
 
+[Back to Top](#program-derived-address-pda-security)
+
 ### Safe Lamport Transfers
 
 - Use proper signing for PDA transfers
@@ -70,6 +85,8 @@ invoke_signed(
 )?;
 ```
 
+[Back to Top](#program-derived-address-pda-security)
+
 ### Seed Collision Prevention
 
 - Use unique prefixes for seeds
@@ -87,6 +104,8 @@ let (pda, bump) = Pubkey::find_program_address(
     program_id
 );
 ```
+
+[Back to Top](#program-derived-address-pda-security)
 
 ### PDA Reinitialization Protection
 
@@ -107,6 +126,8 @@ let (pda, bump) = Pubkey::find_program_address(
 pub vault: Account<'info, Vault>
 ```
 
+[Back to Top](#program-derived-address-pda-security)
+
 ### Bump Seed Validation
 
 - Always validate bump seeds
@@ -121,6 +142,8 @@ let pda = Pubkey::create_program_address(&seeds, program_id)?;
 let (pda, bump) = Pubkey::find_program_address(&seeds, program_id);
 vault.bump = bump;  // Store for future validation
 ```
+
+[Back to Top](#program-derived-address-pda-security)
 
 ### PDA Account Space Management
 
@@ -141,4 +164,6 @@ vault.bump = bump;  // Store for future validation
     bump
 )]
 pub vault: Account<'info, Vault>
-``` 
+```
+
+[Back to Top](#program-derived-address-pda-security)

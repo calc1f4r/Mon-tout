@@ -6,7 +6,7 @@
 - [ ] [Protect against account reinitialization](#reinitialization-protection)
 - [ ] [Validate account space calculations](#account-space-validation)
 - [ ] [Handle ATA creation and existence checks](#associated-token-account-ata-management)
-- [ ] [Consider rent-exempt minimum in transfers](#rent-consideration)
+
 - [ ] [Maintain atomic operations and data consistency](#account-data-consistency)
 
 ## Detailed Security Measures
