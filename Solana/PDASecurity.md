@@ -1,5 +1,18 @@
 # Program Derived Address (PDA) Security
 
+## PDA Security Checklist
+
+- [ ] Validate PDA derivation and bump seeds
+- [ ] Use unique seeds for PDAs to prevent collisions
+- [ ] Implement proper ownership and authority checks
+- [ ] Use safe lamport transfers with correct signing
+- [ ] Protect against PDA reinitialization attacks
+- [ ] Store and validate bump seeds correctly
+- [ ] Calculate PDA space requirements accurately
+- [ ] Verify program ownership of PDA accounts
+- [ ] Use unique prefixes in seeds to prevent collisions
+- [ ] Avoid passing the same account multiple times to an instruction
+
 ## Table of Contents
 - [Security Checklist](#security-checklist)
 - [Detailed Security Measures](#detailed-security-measures)
@@ -10,6 +23,7 @@
   - [PDA Reinitialization Protection](#pda-reinitialization-protection)
   - [Bump Seed Validation](#bump-seed-validation)
   - [PDA Account Space Management](#pda-account-space-management)
+  - [Account Serialization Security](#account-serialization-security)
 
 ## Security Checklist
 
@@ -165,5 +179,55 @@ vault.bump = bump;  // Store for future validation
 )]
 pub vault: Account<'info, Vault>
 ```
+
+[Back to Top](#program-derived-address-pda-security)
+
+### Account Serialization Security
+⭕ A classical good issue
+
+Read more at : https://github.com/sherlock-audit/2024-08-woofi-solana-deployment-judging/issues/73 
+- Avoid passing the same account multiple times to an instruction
+- Be aware of Anchor serialization behavior
+- Use separate instructions for different operation types
+
+```rust
+// ❌ Bad: Same account passed multiple times with different modifications
+// In this example, woopool_quote might be the same as woopool_from or woopool_to
+woopool_from.add_reserve(from_amount).unwrap();
+woopool_to.sub_reserve(to_amount).unwrap();
+woopool_quote.sub_reserve(swap_fee).unwrap();
+woopool_quote.add_unclaimed_fee(swap_fee).unwrap();
+
+// ✅ Good: Split into separate instructions when accounts overlap
+// Option 1: Separate instructions for different swap types
+pub fn sell_base_for_quote(...) -> Result<()> {
+    // When woopool_to == woopool_quote
+}
+
+pub fn sell_quote_for_base(...) -> Result<()> {
+    // When woopool_from == woopool_quote
+}
+
+// Option 2: Consolidate changes when same account appears multiple times
+if woopool_to.key() == woopool_quote.key() {
+    // Apply all changes to one reference
+    woopool_to.sub_reserve(to_amount).unwrap();
+    woopool_to.sub_reserve(swap_fee).unwrap();
+    woopool_to.add_unclaimed_fee(swap_fee).unwrap();
+} else {
+    // Normal case
+    woopool_to.sub_reserve(to_amount).unwrap();
+    woopool_quote.sub_reserve(swap_fee).unwrap();
+    woopool_quote.add_unclaimed_fee(swap_fee).unwrap();
+}
+```
+
+**Security Vulnerability:** When the same account is passed twice to an instruction in Anchor:
+1. Anchor deserializes account data into in-memory structures
+2. Changes are made to these in-memory copies
+3. After execution, Anchor serializes accounts back to storage
+4. **Only the last serialization persists, overwriting previous changes**
+
+This can lead to incorrect state updates, accounting errors, and potential economic vulnerabilities.
 
 [Back to Top](#program-derived-address-pda-security)

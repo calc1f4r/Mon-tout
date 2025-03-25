@@ -17,6 +17,8 @@
 **Likelihood**: High  
 **Description**: When a PDA signs transactions, the bump seed must be included in the signer seeds array. Missing bump seeds cause transactions to fail due to invalid signatures, potentially resulting in loss of funds when tokens are stuck in accounts that require PDA signatures.
 
+
+Read more at : https://github.com/sherlock-audit/2024-08-woofi-solana-deployment-judging/issues/18
 **Vulnerable Code**:
 ```rust
 // ❌ Bad: Bump seed missing from seeds array

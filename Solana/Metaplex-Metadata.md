@@ -27,3 +27,21 @@ This could lead to:
 
 ### Impact
 - [ ] Excessive storage costs and poor UX due to unbounded metadata string lengths
+
+
+## When creating a bonding curve give a name to the creator as well 
+```rust
+  let data = DataV2 {
+            name,
+            symbol,
+            uri,
+            seller_fee_basis_points: 0,
+            creators: Some(vec![Creator {
+                address: creator,
+                verified: false,
+                share: 100,
+            }]),
+            collection: None,
+            uses: None,
+        };
+```
