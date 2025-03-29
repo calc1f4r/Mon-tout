@@ -22,7 +22,9 @@
 - [ ] [Timestamp Dependence](#timestamp-dependence) - Reliance on block.timestamp for critical operations
 - [ ] [Signature Replay](#signature-replay) - Lack of nonce or other protection against signature replay
 - [ ] [Off by one issue](#off-by-one-issue) - Loop iteration or array index errors that miss or process an extra element
-
+- [ ] [Incomplete State Updates](#incomplete-state-updates) - Missing or incorrect state variable updates causing inconsistencies
+- [ ] [Improper Pause Mechanisms](#improper-pause-mechanisms) - Pause functionality that blocks critical operations or leads to locked funds
+- [ ] [Make sure all the important states are intialized in the delpoyment itself] -> This does not leave space for contract to be default state for that state 
 ## Detailed Security Measures
 
 ### Parameter Mismatch
@@ -679,4 +681,97 @@ function processItems(uint256[] memory items) external {
 - Review array access logic carefully
 - Use strict boundary checks even when accessing enumerables
 - Add thorough tests including edge cases (empty arrays, single item arrays)
+
+### Incomplete State Updates
+
+**Impact**: Critical  
+**Likelihood**: High  
+**Description**: Missing or incorrect state updates can lead to inconsistent contract states, fund loss, or broken functionality.
+
+**Vulnerable Code**:
+```solidity
+// ❌ Bad: Incomplete state update
+function transferOwnership(address newOwner) external onlyOwner {
+    owner = newOwner;
+    // Missing state update for related permissions
+    // Missing event emission
+}
+```
+
+**Secure Code**:
+```solidity
+// ✅ Good: Complete state update
+function transferOwnership(address newOwner) external onlyOwner {
+    require(newOwner != address(0), "New owner cannot be zero address");
+    address oldOwner = owner;
+    owner = newOwner;
+    
+    // Update related permissions
+    isAdmin[oldOwner] = false;
+    isAdmin[newOwner] = true;
+    
+    emit OwnershipTransferred(oldOwner, newOwner);
+}
+```
+
+**Prevention**:
+- Ensure all related state variables are updated atomically
+- Use comprehensive test cases that verify state consistency
+- Create state invariants and check them in tests
+- Document state relationships between variables
+
+### Improper Pause Mechanisms
+
+**Impact**: High  
+**Likelihood**: Medium  
+**Description**: Improper implementation of pause/disable mechanisms can lead to locked funds, blocked critical operations, or unusable contracts.
+
+**Vulnerable Code**:
+```solidity
+// ❌ Bad: Pause mechanism that locks user funds
+function setPoolEnabled(uint256 poolId, bool enabled) external onlyAdmin {
+    pools[poolId].enabled = enabled;
+    // No mechanism to allow users to withdraw funds if disabled
+}
+
+function bid(uint256 poolId, uint256 amount) external {
+    require(pools[poolId].enabled, "Pool disabled");
+    // Process bid...
+}
+
+// No withdrawal function that works when pool is disabled
+```
+
+**Secure Code**:
+```solidity
+// ✅ Good: Pause mechanism with emergency withdrawal
+function setPoolEnabled(uint256 poolId, bool enabled) external onlyAdmin {
+    pools[poolId].enabled = enabled;
+    emit PoolStatusChanged(poolId, enabled);
+}
+
+function bid(uint256 poolId, uint256 amount) external {
+    require(pools[poolId].enabled, "Pool disabled");
+    // Process bid...
+}
+
+// Critical withdrawal function that works even when paused
+function emergencyWithdraw(uint256 poolId) external {
+    require(hasBid[msg.sender][poolId], "No bids to withdraw");
+    uint256 amount = userBids[msg.sender][poolId];
+    userBids[msg.sender][poolId] = 0;
+    hasBid[msg.sender][poolId] = false;
+    
+    token.transfer(msg.sender, amount);
+    emit EmergencyWithdraw(msg.sender, poolId, amount);
+}
+```
+
+**Prevention**:
+- Implement emergency withdrawal mechanisms that work when paused
+- Test both pause and unpause functionality thoroughly
+- Document which operations should still work when paused
+- Consider tiered pause mechanisms (partial vs. full system pause)
+- Ensure critical user operations like withdrawals remain available
+- Reference: [Pashov Audit Group - Bunni](https://solodit.cyfrin.io/issues/m-03-funds-from-bids-can-get-locked-if-amamm-is-disabled-for-a-pool-pashov-audit-group-none-bunni-august-markdown)
 

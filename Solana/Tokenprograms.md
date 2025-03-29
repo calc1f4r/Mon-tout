@@ -1,0 +1,1 @@
+1. Always validate the mint of the token transfered for the mint extensions required 
