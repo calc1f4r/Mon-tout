@@ -24,6 +24,7 @@
 - [ ] [Off by one issue](#off-by-one-issue) - Loop iteration or array index errors that miss or process an extra element
 - [ ] [Incomplete State Updates](#incomplete-state-updates) - Missing or incorrect state variable updates causing inconsistencies
 - [ ] [Improper Pause Mechanisms](#improper-pause-mechanisms) - Pause functionality that blocks critical operations or leads to locked funds
+- [ ] [EVM Chain Compatibility Issues](#evm-chain-compatibility-issues) - Using Solidity versions with opcodes not supported on target chains
 - [ ] [Make sure all the important states are intialized in the delpoyment itself] -> This does not leave space for contract to be default state for that state 
 ## Detailed Security Measures
 
@@ -32,6 +33,8 @@
 **Impact**: High  
 **Likelihood**: Medium  
 **Description**: Mismatched parameters between function calls and expectations can lead to incorrect behavior or vulnerabilities.
+
+**Context**: Parameter mismatches commonly occur during refactoring or when integrating multiple contracts. These issues can be particularly dangerous when they involve token addresses or financial parameters. For example, in the Akutars NFT project, $34M was locked due to function parameter confusion in a contract-to-contract call. Automated testing often fails to catch these issues as functions execute without errors but with unintended behaviors.
 
 **Vulnerable Code**:
 ```solidity
@@ -61,6 +64,8 @@ function swap(address tokenIn, address tokenOut, uint256 amountIn) external {
 **Impact**: High  
 **Likelihood**: High  
 **Description**: Lack of input validation can lead to unexpected behaviors, security vulnerabilities, and economic exploits.
+
+**Context**: Input validation issues are among the most common vulnerabilities in smart contracts. In DeFi protocols, missing validation for zero addresses or zero values can lead to economic exploits. In the Uranium Finance incident, improper validation allowed attackers to drain $50M+ by manipulating input parameters. Input validation should be your first line of defense against malicious or erroneous data.
 
 **Vulnerable Code**:
 ```solidity
@@ -93,6 +98,8 @@ function deposit(uint256 amount, address token) external {
 **Likelihood**: High  
 **Description**: Unchecked arithmetic operations can lead to integer overflow or underflow, resulting in unexpected behaviors and economic exploits.
 
+**Context**: While Solidity 0.8.0+ includes built-in overflow checks, many contracts still use older versions requiring SafeMath. The Beauty Chain (BEC) token overflow bug allowed attackers to generate massive token amounts by exploiting arithmetic overflow. Even with newer Solidity versions, developers must be cautious of deliberately using unchecked blocks for gas optimization, as these bypass safety checks.
+
 **Vulnerable Code**:
 ```solidity
 // ❌ Bad: Unchecked arithmetic
@@ -123,6 +130,8 @@ function transfer(uint256 amount) external {
 **Impact**: Medium  
 **Likelihood**: High  
 **Description**: Improper handling of decimal calculations can lead to precision loss, rounding errors, and economic exploits.
+
+**Context**: Rounding issues are particularly problematic in financial contracts where precision matters. DeFi protocols often face "penny rounding" exploits where small rounding errors can be magnified through large volumes or flash loans. The Compound protocol faced an incident where rounding errors in their interest rate calculations could be exploited for profit. Fixing these issues often requires careful consideration of calculation order and precision.
 
 **Vulnerable Code**:
 ```solidity
@@ -160,6 +169,8 @@ function calculateFee(uint256 amount) internal returns (uint256) {
 **Likelihood**: High  
 **Description**: Missing or incorrect event emissions make off-chain tracking difficult and can hide critical state changes.
 
+**Context**: Events serve as the primary way for off-chain services to track on-chain activities. Missing events can break UI functionality, analytics, and create audit gaps. In complex DeFi protocols, missing events often cause inconsistencies between on-chain state and off-chain dashboards. While not directly exploitable, these issues significantly reduce transparency and can hide malicious activities.
+
 **Vulnerable Code**:
 ```solidity
 // ❌ Bad: Missing event emission for critical operation
@@ -192,7 +203,9 @@ function lock(uint256 tokenId) external {
 
 **Impact**: Critical  
 **Likelihood**: Medium  
-**Description**: Failures to properly update state variables can lead to inconsistent contract state and security vulnerabilities.
+**Description**: State variables not properly updated after operations can lead to inconsistent contract state and security vulnerabilities.
+
+**Context**: State update failures frequently occur when developers don't follow the checks-effects-interactions pattern. The DAO hack of 2016, which led to the Ethereum hard fork, exploited a state update issue where balance updates occurred after external calls. Modern versions of this vulnerability can still be found in complex multi-step operations where state changes are improperly sequenced.
 
 **Vulnerable Code**:
 ```solidity
@@ -224,7 +237,9 @@ function withdraw(uint256 amount) external {
 
 **Impact**: Medium  
 **Likelihood**: Medium  
-**Description**: Hardcoded gas values can cause transactions to fail during network congestion or after protocol upgrades.
+**Description**: Static gas values causing failed transactions during network congestion or after protocol upgrades.
+
+**Context**: Hardcoded gas values became particularly problematic after the London fork (EIP-1559) changed gas mechanics. Projects like Gnosis Safe had to release updates to handle the new gas calculation model. Contracts that forward calls with fixed gas values frequently break during network congestion or after gas calculation changes in hard forks, making functions that worked previously suddenly fail.
 
 **Vulnerable Code**:
 ```solidity
@@ -260,7 +275,9 @@ function transferWithCallback(address to, uint256 amount) external {
 
 **Impact**: Low  
 **Likelihood**: High  
-**Description**: Inefficient code can lead to excessive gas consumption, making contract interactions expensive or impossible.
+**Description**: Inefficient code consuming excessive gas can make contract interactions expensive or impossible.
+
+**Context**: Gas optimization becomes critical during network congestion when gas prices spike. Protocols with inefficient batch operations often become unusable during high network activity. For example, NFT minting functions with poor optimization have caused entire projects to fail during launch as users faced transactions costing thousands of dollars. A well-optimized contract can save users significant costs and remain functional during peak periods.
 
 **Vulnerable Code**:
 ```solidity
@@ -299,7 +316,9 @@ function batchProcess(uint256[] calldata ids) external {
 
 **Impact**: Critical  
 **Likelihood**: High  
-**Description**: Functions without proper access controls can be called by unauthorized users, leading to security breaches.
+**Description**: Functions accessible by unauthorized users can lead to security breaches and fund theft.
+
+**Context**: Missing access controls represent one of the most straightforward yet devastating vulnerabilities. The Poly Network hack ($600M stolen, later returned) resulted from a function without proper access controls. Many DeFi projects have lost funds when critical functions like initialization, fee setting, or withdrawal lacked proper access restrictions. These vulnerabilities are often easy to exploit once discovered.
 
 **Vulnerable Code**:
 ```solidity
@@ -328,6 +347,8 @@ function withdraw(uint256 amount) external onlyOwner {
 **Impact**: High  
 **Likelihood**: Medium  
 **Description**: Critical functions controlled by a single address create points of failure and centralization risks.
+
+**Context**: Centralization risks became widely recognized after the Ronin bridge hack ($625M) where validator private keys were compromised. When critical functions like pause, upgrades, or parameter setting are controlled by a single entity, projects face regulatory risks, targeted attacks, and potential for malicious insiders. True decentralization requires timelocks, multi-signature schemes, and governance mechanisms to distribute control.
 
 **Vulnerable Code**:
 ```solidity
@@ -362,6 +383,8 @@ function setFee(uint256 newFee) external {
 **Likelihood**: Medium  
 **Description**: Initialization functions without proper access control can lead to contract hijacking.
 
+**Context**: Unprotected initializers are particularly dangerous in proxy patterns, where implementation contracts can be re-initialized after deployment. The Parity wallet freeze ($150M locked) exemplifies the dangers of improper initialization security. Many modern proxy implementations still face this risk when developers misunderstand how initialization works across the proxy-implementation boundary.
+
 **Vulnerable Code**:
 ```solidity
 // ❌ Bad: Unprotected initializer
@@ -394,6 +417,8 @@ function initialize(address _admin) external {
 **Likelihood**: Medium  
 **Description**: Incorrect authority assignment or missing privileges can prevent legitimate operations or create vulnerabilities.
 
+**Context**: Authority access issues often appear in complex systems with multiple contracts and roles. The Compound governance bug that mistakenly distributed $90M in COMP tokens stemmed from a misaligned authority structure between contracts. Role-based systems require careful tracking of privileges across contract upgrades and interactions to avoid permission gaps or unintended escalations.
+
 **Vulnerable Code**:
 ```solidity
 // ❌ Bad: Missing authority assignment
@@ -424,6 +449,8 @@ function delegateVault(address newVaultManager) external onlyOwner {
 **Likelihood**: High  
 **Description**: Incorrect implementation of business rules can lead to unexpected behavior and economic vulnerabilities.
 
+**Context**: Logic errors vary widely in nature and can be difficult to identify through automated analysis. The bZx flash loan attacks ($1M) exploited logical flaws in their price calculation mechanism. Business logic errors typically relate to the core functionality of a protocol rather than security primitives, making them particularly challenging to detect without thorough testing and auditing.
+
 **Vulnerable Code**:
 ```solidity
 // ❌ Bad: Logic error in condition
@@ -452,6 +479,8 @@ function rewardQualified(uint256 stakeDuration) internal pure returns (bool) {
 **Impact**: Critical  
 **Likelihood**: Medium  
 **Description**: Price feeds or oracles that can be manipulated may lead to economic exploits and fund theft.
+
+**Context**: Oracle manipulation has become a primary attack vector in DeFi. The Harvest Finance ($34M) and Cheese Bank ($3.3M) exploits involved flash loan attacks that manipulated price oracles. Protocols relying on single price sources or AMM pools with low liquidity as price references are particularly vulnerable. Modern DeFi systems typically require multiple oracle sources with deviation checks and TWAP (time-weighted average price) mechanisms.
 
 **Vulnerable Code**:
 ```solidity
@@ -488,6 +517,8 @@ function getTokenPrice(address token) external view returns (uint256) {
 **Likelihood**: Medium  
 **Description**: Mathematical errors in formulas or algorithms can lead to incorrect results and economic losses.
 
+**Context**: Calculation errors are common in complex financial systems, particularly those involving tokenomics, interest rates, or reward distributions. The Stakehound incident ($75M) involved errors in the staking reward calculation formula. These vulnerabilities often lurk in specialized mathematical functions where review requires domain expertise beyond standard security auditing.
+
 **Vulnerable Code**:
 ```solidity
 // ❌ Bad: Calculation error
@@ -517,6 +548,8 @@ function calculateInterest(uint256 principal, uint256 rate, uint256 time) intern
 **Likelihood**: Medium  
 **Description**: Empty or unnecessary functions create misleading security expectations and confusion.
 
+**Context**: Redundant functions typically occur during iterative development when functionality is moved but old functions remain. In the Fei Protocol, redundant functions in their codebase created confusion about which functions were actually operational, leading to misunderstandings about system security. Empty functions with security-suggesting names can create a false sense of protection while actually implementing nothing.
+
 **Vulnerable Code**:
 ```solidity
 // ❌ Bad: Empty function with misleading name
@@ -545,6 +578,8 @@ function removeFromWhitelist(address user) external onlyOwner {
 **Impact**: High  
 **Likelihood**: Medium  
 **Description**: Transactions vulnerable to front-running can be exploited to extract value or manipulate outcomes.
+
+**Context**: Front-running has become institutionalized on blockchains through MEV (Miner Extractable Value) extraction. The SushiSwap token migration faced front-running that cost users significant value. Any function where the outcome depends on market prices, particularly in DEXes and lending platforms, requires slippage controls and deadlines to prevent manipulation. Advanced protocols now use commit-reveal schemes or batched settlements to mitigate these attacks.
 
 **Vulnerable Code**:
 ```solidity
@@ -580,7 +615,9 @@ function swapTokens(
 
 **Impact**: Medium  
 **Likelihood**: Medium  
-**Description**: Heavy reliance on block.timestamp for critical operations can lead to miner manipulation and timing issues.
+**Description**: Reliance on block.timestamp for critical operations can lead to miner manipulation and timing issues.
+
+**Context**: Timestamp manipulation became less concerning after Ethereum's move to Proof of Stake, but remains relevant on other chains and for precise timing requirements. The GovernMental Ponzi scheme ($1M) collapsed partly due to timestamp manipulation issues. Smart contracts should avoid precise timing requirements and never use timestamps for random number generation or exact timing guarantees.
 
 **Vulnerable Code**:
 ```solidity
@@ -610,6 +647,8 @@ function isEligibleForDiscount(uint256 blockNumber) public view returns (bool) {
 **Impact**: Critical  
 **Likelihood**: Medium  
 **Description**: Lack of nonce or other protection can allow signatures to be reused in multiple transactions.
+
+**Context**: Signature replay vulnerabilities affected many early token standards and meta-transactions. The dYdX exchange once faced an issue where withdrawal signatures could be replayed across different markets. Modern signature schemes require domain separators (EIP-712), chain IDs, contract addresses, and nonces to prevent cross-contract, cross-chain, and repeated usage of the same signature.
 
 **Vulnerable Code**:
 ```solidity
@@ -652,7 +691,9 @@ function executeWithSignature(
 
 **Impact**: Medium  
 **Likelihood**: High  
-**Description**: Off-by-one errors occur when loops or array operations miscalculate the valid range of indices, often accessing memory positions that are out of intended bounds.
+**Description**: Loop iteration or array index errors that miss or process an extra element.
+
+**Context**: Off-by-one errors are classic programming mistakes that affect smart contracts just like traditional software. The Wormhole bridge hack ($320M) involved an off-by-one error in guardian signature verification. These bugs often appear in array processing, especially when converting between zero-based and one-based indexing or when setting loop boundaries incorrectly.
 
 **Vulnerable Code**:
 ```solidity
@@ -686,7 +727,9 @@ function processItems(uint256[] memory items) external {
 
 **Impact**: Critical  
 **Likelihood**: High  
-**Description**: Missing or incorrect state updates can lead to inconsistent contract states, fund loss, or broken functionality.
+**Description**: Missing or incorrect state variable updates causing inconsistencies.
+
+**Context**: State inconsistency bugs frequently occur in complex systems with interdependent state variables. The Cream Finance exploit ($130M) exploited state inconsistencies between lending positions and collateral tracking. When multiple contracts or multiple variables represent related state, maintaining consistency across all updates is crucial to prevent exploit opportunities.
 
 **Vulnerable Code**:
 ```solidity
@@ -713,7 +756,6 @@ function transferOwnership(address newOwner) external onlyOwner {
     emit OwnershipTransferred(oldOwner, newOwner);
 }
 ```
-
 **Prevention**:
 - Ensure all related state variables are updated atomically
 - Use comprehensive test cases that verify state consistency
@@ -724,7 +766,9 @@ function transferOwnership(address newOwner) external onlyOwner {
 
 **Impact**: High  
 **Likelihood**: Medium  
-**Description**: Improper implementation of pause/disable mechanisms can lead to locked funds, blocked critical operations, or unusable contracts.
+**Description**: Pause functionality that blocks critical operations or leads to locked funds.
+
+**Context**: Pause mechanisms are security features that can become vulnerabilities themselves when poorly implemented. During the Ronin bridge hack, the pause mechanism failed to activate quickly enough to prevent the theft. Conversely, the Akutars NFT project had funds permanently locked because their pause mechanism didn't include an unpause or emergency withdrawal capability. Effective pause systems need clear activation criteria, appropriate scope, and recovery paths.
 
 **Vulnerable Code**:
 ```solidity

@@ -1,0 +1,1 @@
+https://kadenzipfel.github.io/smart-contract-vulnerabilities/vulnerabilities/unsupported-opcodes.html#:~:text=PUSH0%20Opcode%20Compatibility,support%20for%20this%20opcode%20yet.
