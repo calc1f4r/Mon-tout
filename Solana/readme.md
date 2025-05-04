@@ -394,3 +394,6 @@ https://docs.pyth.network/price-feeds/best-practices
 49. make sure when using the init_if_needed there is no reinitialzation vulnerability 
 50. Use of transfer funtion on a token 2022 program mint's token accunt 
 51. While using wsol account there are actually two mint address now one for teh legacy spl token program and one for the new token program 
+52. No way to close the account 
+53. No way to get the token accidently sent to the pda
+Make sure the decimals values are always correct 
