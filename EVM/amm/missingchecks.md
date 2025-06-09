@@ -133,42 +133,6 @@ https://solodit.cyfrin.io/issues/quantammswapfeetake-used-for-both-getquantammsw
 
 Here is a **checklist** for auditing an **Automated Market Maker (AMM)** based on the **Vertex Protocol Audit Report** findings:
 
-### **Critical Issues: Immediate Risk**
-- [ ] **Unit Conversion Errors**: Ensure proper precision handling in mathematical operations (`toInt()` vs. `fromInt()`) to prevent value manipulation.
-- [ ] **Unauthorized Access Control**: Restrict access to sensitive functions (`updateStates` should only be callable by trusted contracts).
-- [ ] **Settlement Calculation Errors**: Verify that profit/loss calculations only consider the user's portion and not the entire liquidity pool.
-- [ ] **Double Conversion of Units in Swap**: Check for multiple conversions of quote amounts, which could allow fund manipulation.
-
-### **High-Risk Issues: Fund Loss or Systemic Risks**
-- [ ] **Incorrect Fee Calculations**: Ensure correct deduction of fees to prevent fund imbalances.
-- [ ] **Unreachable Fee Dumping Function**: Ensure fee collection functions are callable to avoid locked funds.
-- [ ] **Failed Deposits Not Refunding Users**: Ensure funds are returned if deposit transactions fail.
-- [ ] **Socialized Losses Exceeding Insurance Cover**: Verify that socialization does not overcompensate losses.
-- [ ] **Incorrect Borrow Rate Calculation**: Ensure borrow rate updates correctly as utilization ratio changes.
-- [ ] **Variable Misuse in State Updates**: Confirm correct variables are used to update system states.
-
-### **Medium-Risk Issues: Stability & Exploitability**
-- [ ] **Improper Arithmetic Operations**: Check for signed integer handling to prevent underflow/overflow.
-- [ ] **Slow Mode Transactions Exploits**: Ensure that only the sender can execute transactions in slow mode.
-- [ ] **DumpFees Failure in PerpEngine**: Ensure that the collected fees are correctly transferred to fee accounts.
-- [ ] **Incorrect LP State Updates**: Verify that LP state updates reflect actual cumulative values.
-- [ ] **Mint/Burn LP Allows Negative Values**: Prevent unintended liquidity manipulation.
-- [ ] **User-Controlled Pool Pricing**: Ensure initial pool pricing follows external oracle prices.
-- [ ] **Incorrect Normalization Updates**: Ensure borrow and deposit normalization calculations are correct.
-- [ ] **Incorrect Liquidation Status Checks**: Fix miscalculations in liquidation conditions.
-
-### **Low-Risk Issues: Gas Optimization & Minor Bugs**
-- [ ] **Health Group Update Errors**: Prevent unnecessary gas usage from large health group numbers.
-- [ ] **Rounding Errors in Swap & Liquidity Functions**: Ensure correct rounding strategies for precision.
-- [ ] **Time and Price Validation from Sequencer**: Validate external updates for time and price to prevent manipulation.
-- [ ] **Zero Address Validation**: Prevent addition of zero addresses as valid contract parameters.
-
-### **General Security Recommendations**
-- [ ] **Code Redundancy**: Remove duplicate logic to reduce complexity and prevent inconsistencies.
-- [ ] **Validate Token & Product IDs**: Ensure token and product addresses are valid before execution.
-- [ ] **Unnecessary External Calls**: Use internal calls where applicable to save gas.
-- [ ] **Improper Code Structure**: Optimize how functions are structured to improve execution efficiency.
-- [ ] **Missing Event Emissions**: Add event logs for important actions (e.g., initialization, state updates).
-- [ ] **Unbounded Transaction Execution**: Ensure limits on transaction execution loops to prevent DOS attacks.
-
-Would you like a more detailed breakdown of any specific issue? 🚀
+## MY AMM Audit Checklist
+[] Minimum liquidity should be enforced a v2 constant product
+User will be able to create a pool with 1: 10000 ratio 
