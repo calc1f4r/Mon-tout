@@ -30,5 +30,10 @@
    - Verify that all necessary checks are in place for bridging NFTs between chains.
    - Ensure that NFTs can be transferred back and forth without getting stuck.
 
+9. **Starting ID Configuration**:
+   - If you change the starting ID to 1, then the `setUriRange` function should also be updated accordingly.
+   - Ensure that the `setUriRange` function is compatible with the new starting ID.
+   - Test the function thoroughly to ensure it correctly updates the URI range for all token IDs.
+   - Verify that all token ID calculations and validations account for the updated starting index.
 
 References : https://hashnode.com/draft/6595bf9064f9520e7dcc7b99
